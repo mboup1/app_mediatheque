@@ -3,12 +3,18 @@ package com.app.mediatheque.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name="emprunts")
 public class Emprunt {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private LocalDate dateDebutEmprunt;
+    private LocalDate dateRetourEmprunt;
+
     private Long idAdherent;
     private Long idDocument;
 
@@ -28,9 +34,26 @@ public class Emprunt {
     public Emprunt() {
     }
 
-    public Emprunt(Long idAdherent, Long idDocument) {
+    public Emprunt(LocalDate dateDebutEmprunt, Long idAdherent, Long idDocument) {
+        this.dateDebutEmprunt = dateDebutEmprunt;
         this.idAdherent = idAdherent;
         this.idDocument = idDocument;
+    }
+
+    public LocalDate getDateDebutEmprunt() {
+        return dateDebutEmprunt;
+    }
+
+    public void setDateDebutEmprunt(LocalDate dateDebutEmprunt) {
+        this.dateDebutEmprunt = dateDebutEmprunt;
+    }
+
+    public LocalDate getDateRetourEmprunt() {
+        return dateRetourEmprunt;
+    }
+
+    public void setDateRetourEmprunt(LocalDate dateRetourEmprunt) {
+        this.dateRetourEmprunt = dateRetourEmprunt;
     }
 
     public Long getId() {
@@ -78,6 +101,8 @@ public class Emprunt {
     public String toString() {
         return "Emprunt{" +
                 "id=" + id +
+                ", dateDebutEmprunt=" + dateDebutEmprunt +
+                ", dateRetourEmprunt=" + dateRetourEmprunt +
                 ", idAdherent=" + idAdherent +
                 ", idDocument=" + idDocument +
                 ", adherent=" + adherent +

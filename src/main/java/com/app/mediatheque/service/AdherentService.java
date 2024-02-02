@@ -1,6 +1,7 @@
 package com.app.mediatheque.service;
 
 import com.app.mediatheque.model.Adherent;
+import com.app.mediatheque.model.Emprunt;
 import com.app.mediatheque.repository.AdherentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,5 +39,16 @@ public class AdherentService {
             adherent.setId(id);
             adherentRepository.save(adherent);
         }
+    }
+
+    public List<String> getEmailsForEmprunts(List<Emprunt> emprunts) {
+        List<String> emails = new ArrayList<>();
+        for (Emprunt emprunt : emprunts) {
+            Adherent adherent = emprunt.getAdherent();
+            if (adherent != null) {
+                emails.add(adherent.getEmail());
+            }
+        }
+        return emails;
     }
 }

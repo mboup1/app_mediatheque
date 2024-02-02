@@ -1,6 +1,5 @@
 package com.app.mediatheque.service;
 
-import com.app.mediatheque.error.AdherentMembershipExpiredException;
 import com.app.mediatheque.model.Adherent;
 import com.app.mediatheque.model.Document;
 import com.app.mediatheque.model.Emprunt;
@@ -10,6 +9,7 @@ import com.app.mediatheque.repository.EmpruntRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,10 +21,13 @@ public class EmpruntService {
     private EmpruntRepository empruntRepository;
 
     @Autowired
-    private AdherentRepository adherentRepository;  // Ajout de la déclaration
+    private AdherentRepository adherentRepository;
 
     @Autowired
-    private DocumentRepository documentRepository;  // Ajout de la déclaration
+    private DocumentRepository documentRepository;
+
+    @Autowired
+    private AdherentService adherentService;
 
 
 //    public void add(Emprunt emprunt) {
@@ -64,6 +67,7 @@ public class EmpruntService {
 
         // Vérifier si l'adhérent a déjà emprunté le maximum autorisé (3 documents dans cet exemple)
         List<Emprunt> empruntsAdherent = empruntRepository.findByAdherent(adherent);
+        System.out.println("empruntsAdherent : "+empruntsAdherent);
         if (empruntsAdherent.size() >= 3) {
             System.out.println("L'adhérent a atteint le nombre maximum d'emprunts");
             return null; // ou lancer une exception selon les besoins de votre application
@@ -82,7 +86,7 @@ public class EmpruntService {
     }
 
 
-    public List<Emprunt> getAll() {
+    public List<Emprunt> getAllDocumentsEmprunts() {
         List<Emprunt> emprunts = new ArrayList<>();
         empruntRepository.findAll().forEach(emprunt -> emprunts.add(emprunt));
         return emprunts;
@@ -102,5 +106,43 @@ public class EmpruntService {
             emprunt.setId(id);
             empruntRepository.save(emprunt);
         }
+    }
+
+    public void rendreDocument(Long empruntId) {
+        // Recherche de l'emprunt par son identifiant
+        Emprunt emprunt = empruntRepository.findById(empruntId).orElse(null);
+
+        if (emprunt != null) {
+            // Mettre à jour le statut du document à non emprunté
+            Document document = emprunt.getDocument();
+            document.setEmprunte(false);
+            documentRepository.save(document);
+
+            // Supprimer l'emprunt de la base de données
+            empruntRepository.deleteById(empruntId);
+        }
+    }
+
+    public List<Emprunt> getEmpruntsEnRetard() {
+        LocalDate today = LocalDate.now();
+
+        System.out.println("today : " + today);
+
+        // Calculer la date de retour prévue (3 semaines après la date d'emprunt)
+        LocalDate dateRetourEmprunt = today.plusWeeks(3);
+        System.out.println("dateRetourEmprunt : " + dateRetourEmprunt);
+        List<Emprunt> listeEmprunt =getAllDocumentsEmprunts();
+        System.out.println("listeEmprunt : " + listeEmprunt);
+
+
+        // Récupérer les emprunts en retard
+        return empruntRepository.findByDateDebutEmpruntBeforeAndDateRetourEmprunt(dateRetourEmprunt, today);
+    }
+
+
+    public List<String> getEmailsAdherentsEnRetard() {
+        List<Emprunt> empruntsEnRetard = getEmpruntsEnRetard();
+        List<String> emails = adherentService.getEmailsForEmprunts(empruntsEnRetard);
+        return emails;
     }
 }
